@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10-Day Contract Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #06090f;
+    --bg-primary: #0b1120;
+    --bg-card: #111a2e;
+    --bg-row-hover: #162040;
+    --border: #1c2a48;
+    --border-light: #243356;
+    --text-bright: #edf2fc;
+    --text-primary: #c5cfdf;
+    --text-secondary: #7b8ba8;
+    --text-muted: #4a5a78;
+    --accent-gold: #f0b840;
+    --accent-cyan: #38bdf8;
+    --accent-red: #ef6461;
+    --accent-orange: #f59e0b;
+    --accent-green: #34d399;
+    --high: #ef6461;
+    --mid: #f0b840;
+    --low: #4a90e2;
+    --zero: #3a4a68;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+  }
+
+  .page-header {
+    padding: 44px 32px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #0e1a35 0%, var(--bg-deep) 100%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(240,184,64,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .page-header h1 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 2.8rem;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--text-bright);
+    position: relative;
+  }
+
+  .page-header h1 span {
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .legend {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    padding: 16px 32px 14px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  .legend .hardship-dot {
+    color: var(--accent-cyan);
+  }
+
+  .legend .counter {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .legend .counter .count-num {
+    color: var(--accent-gold);
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin: 0 3px;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    padding: 0 16px 50px;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    background: var(--bg-primary);
+    font-family: 'Oswald', sans-serif;
+    font-weight: 500;
+    font-size: 0.78rem;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    padding: 14px 16px 12px;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 2px solid var(--accent-gold);
+    user-select: none;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  thead th:hover { color: var(--accent-cyan); }
+
+  thead th.sort-active { color: var(--accent-gold); }
+
+  thead th .sort-arrow {
+    font-size: 0.55rem;
+    margin-left: 4px;
+    opacity: 0.3;
+  }
+
+  thead th.sort-active .sort-arrow { opacity: 1; color: var(--accent-gold); }
+
+  thead th.align-right, td.align-right { text-align: right; }
+  thead th.align-center, td.align-center { text-align: center; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-deep);
+    transition: background 0.12s;
+  }
+
+  tbody tr:hover { background: var(--bg-row-hover); }
+
+  tbody td {
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  /* Player name column */
+  td.player-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  td.player-cell .hardship-tag {
+    font-size: 0.6rem;
+    font-weight: 500;
+    color: var(--accent-cyan);
+    margin-left: 6px;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+  }
+
+  /* Team column */
+  td.team-cell {
+    color: var(--text-secondary);
+  }
+
+  /* Date columns */
+  td.date-cell {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  /* Days left */
+  td.days-cell {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .days-active { color: var(--accent-green); }
+  .days-expired { color: var(--text-muted); }
+
+  /* YOS */
+  td.yos-cell {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    text-align: center;
+    color: var(--text-secondary);
+  }
+
+  /* Cap hit */
+  td.cap-cell {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 100px 20px;
+    gap: 18px;
+  }
+
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent-gold);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading p {
+    color: var(--text-secondary);
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+  }
+
+  @media (max-width: 768px) {
+    .page-header h1 { font-size: 1.8rem; letter-spacing: 3px; }
+    .page-header { padding: 28px 16px 18px; }
+    .table-wrapper { padding: 0 6px 30px; }
+  }
+
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-track { background: var(--bg-deep); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1><span>10-Day</span> Contract Tracker</h1>
+</div>
+
+<div class="legend">
+  <span class="counter">10-Day Contracts:<span class="count-num" id="tenDayCount">0</span></span>
+  <span><span class="hardship-dot">*</span>&nbsp;Denotes Hardship</span>
+</div>
+
+<div id="app">
+  <div class="loading"><div class="spinner"></div><p>Loading&hellip;</p></div>
+</div>
+
+<script>
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTwTOS_rNBYI8d8zDUivGFWXsXcxlOZgrqn5o-WCvFC5aNAR3vLsSqllE7aO0BRw/pub?gid=2125971386&single=true&output=csv';
+
+const FALLBACK_B64 = `UGxheWVyLFRlYW0sU3RhcnQgRGF0ZSxFbmQgRGF0ZSxEYXlzIExlZnQsWWVhcnMgb2YgU2VydmljZSxDYXAgSGl0LEN1cnJlbnQgRGF0ZSxTZWFzb24gU3RhcnQgRGF0ZSxTZWFzb24gRW5kIERhdGUsLDEvMTAvMjAyNiwNCkNoYXJsZXMgQmFzc2V5KixNZW1waGlzIEdyaXp6bGllcywxMC8yNy8yMDI1LDExLzYvMjAyNSwwLDIsIiAkIDEzMSw5NzAgIiwyLzE2LzIwMjYsMTAvMjIvMjAyNSw0LzE0LzIwMjYsLEV4Y2VwdGlvbiBDYWxjLA0KSmVyZW1pYWggUm9iaW5zb24tRWFybCosSW5kaWFuYSBQYWNlcnMsMTEvMS8yMDI1LDExLzExLzIwMjUsMCwyLCIgJCAxMzEsOTcwICIsMTE3LCwxNzQsLDAuNzgxNjA5MTk1NCwwLjAwNTc0NzEyNjQzNw0KQ29keSBNYXJ0aW4qLEluZGlhbmEgUGFjZXJzLDExLzUvMjAyNSwxMS8xNS8yMDI1LDAsMiwiICQgMTMxLDk3MCAiLCwsLCwsDQpKZXJlbWlhaCBSb2JpbnNvbi1FYXJsKixJbmRpYW5hIFBhY2VycywxMS8xMS8yMDI1LDExLzIxLzIwMjUsMCwyLCIgJCAxMzEsOTcwICIsLCwsLCwNCkdhcnJpc29uIE1hdGhld3MqLEluZGlhbmEgUGFjZXJzLDExLzIwLzIwMjUsMTEvMzAvMjAyNSwwLDIsIiAkIDEzMSw5NzAgIixUZW4gRGF5LFJlc3Qgb2YgU2Vhc29uLFllYXJzIG9mIFNlcnZpY2UsLCwNCktvYmUgQnVma2luKixNZW1waGlzIEdyaXp6bGllcywxMS8yNC8yMDI1LDEyLzQvMjAyNSwwLDIsIiAkIDEzMSw5NzAgIiwiJDczLDE1MyAiLCIkNDE2LDk3NCAiLDAgWU9TIHBybyByYXRlZCBtaW4sLDAsDQpHYXJyaXNvbiBNYXRoZXdzKixJbmRpYW5hIFBhY2VycywxMi8xLzIwMjUsMTIvMTEvMjAyNSwwLDIsIiAkIDEzMSw5NzAgIiwiJDExNyw3MjkgIiwiJDY3MSwwNTcgIiwxIFlPUyBwcm8gcmF0ZWQgbWluLCwxLA0KR2FiZSBNY0dsb3RoYW4qLEluZGlhbmEgUGFjZXJzLDEyLzEvMjAyNSwxMi8xMS8yMDI1LDAsMCwiICQgNzMsMTUzICIsIiQxMzEsOTcwICIsIiQ3NTIsMjI3ICIsMiBZT1MgcHJvIHJhdGVkIG1pbiwsMiwNCkphbWVzIFdpc2VtYW4qLEluZGlhbmEgUGFjZXJzLDEyLzIwLzIwMjUsMTIvMzAvMjAyNSwwLDIsIiAkIDEzMSw5NzAgIiwiJDEzNiw3MTYgIiwiJDc3OSwyODQgIiwzIFlPUyBwcm8gcmF0ZWQgbWluLCwzLA0KQ2hyaXN0aWFuIEtvbG9rbyosTWVtcGhpcyBHcml6emxpZXMsMTIvMjIvMjAyNSwxLzEvMjAyNiwwLDIsIiAkIDEzMSw5NzAgIiwiJDE0MSw0NjMgIiwiJDgwNiwzNDEgIiw0IFlPUyBwcm8gcmF0ZWQgbWluLCw0LA0KQ2hyaXN0aWFuIEtvbG9rbyosTWVtcGhpcyBHcml6emxpZXMsMS8yLzIwMjYsMS8xMi8yMDI2LDAsMiwiICQgMTMxLDk3MCAiLCIkMTUzLDMzMCAiLCIkODczLDk4MSAiLDUgWU9TIHBybyByYXRlZCBtaW4sLDUsDQpUb255IEJyYWRsZXksSW5kaWFuYSBQYWNlcnMsMS84LzIwMjYsMS8xOC8yMDI2LDAsMiwiICQgMTMxLDk3MCAiLCIkMTY1LDE5NyAiLCIkOTQxLDYyNCAiLDYgWU9TIHBybyByYXRlZCBtaW4sLDYsDQpLb2JlIEJ1ZmtpbixMb3MgQW5nZWxlcyBMYWtlcnMsMS8xMy8yMDI2LDEvMjMvMjAyNiwwLDIsIiAkIDEzMSw5NzAgIiwiJDE3NywwNjQgIiwiJDEsMDA5LDI2NiAiLDcgWU9TIHBybyByYXRlZCBtaW4sLDcsDQpKZXJlbWlhaCBSb2JpbnNvbi1FYXJsKixEYWxsYXMgTWF2ZXJpY2tzLDEvMTUvMjAyNiwxLzI1LzIwMjYsMCwyLCIgJCAxMzEsOTcwICIsIiQxODgsOTMxICIsIiQxLDA3Niw5MDkgIiw4IFlPUyBwcm8gcmF0ZWQgbWluLCw4LA0KUGF0cmljayBCYWxkd2luIEpyLixMb3MgQW5nZWxlcyBDbGlwcGVycywxLzE2LzIwMjYsMS8yNi8yMDI1LDAsMiwiICQgMTMxLDk3MCAiLCIkMTg5LDg3MiAiLCIkMSwwODIsMjY5ICIsOSBZT1MgcHJvIHJhdGVkIG1pbiwsOSwNClRvbnkgQnJhZGxleSxJbmRpYW5hIFBhY2VycywxLzE5LzIwMjYsMS8yOS8yMDI2LDAsMiwiICQgMTMxLDk3MCAiLCIkMjA4LDg1OSAiLCIkMSwxOTAsNDk3ICIsMTAgWU9TIHBybyByYXRlZCBtaW4sLDEwLA0KQ2hhcmxlcyBCYXNzZXksUGhpbGFkZWxwaGlhIDc2cmVzLDEvMjYvMjAyNiwyLzUvMjAyNiwwLDIsIiAkIDEzMSw5NzAgIiwsLCwsLA0KU2thbCBMYWJpc3NpZXJlLFdhc2hpbmd0b24gV2l6YXJkcywxLzI3LzIwMjYsMi82LzIwMjYsMCwyLCIgJCAxMzEsOTcwICIsLCwsLCwNCktlc2hvbiBHaWxiZXJ0LFdhc2hpbmd0b24gV2l6YXJkcywyLzYvMjAyNiwyLzE2LzIwMjYsMCwwLCIgJCA3MywxNTMgIiwsLCwsLA0KRGFsYW5vIEJhbnRvbixMb3MgQW5nZWxlcyBDbGlwcGVycywyLzcvMjAyNiwyLzE3LzIwMjYsMSwyLCIgJCAxMzEsOTcwICIsLCwsLCwNCkxhd3NvbiBMb3ZlcmluZyxNZW1waGlzIEdyaXp6bGllcywyLzkvMjAyNiwyLzE5LzIwMjYsMywwLCIgJCA3MywxNTMgIiwsLCwsLA0KS2FkYXJ5IFJpY2htb25kLFdhc2hpbmd0b24gV2l6YXJkcywyLzExLzIwMjYsMi8yMS8yMDI2LDUsMCwiICQgNzMsMTUzICIsLCwsLCwNCiwsLCwsLCwsLCwsLA0KKkRlbm90ZXMgSGFyZHNoaXAsLCwsLCwsLCwsLCw=`;
+
+let rows = [];
+let currentSort = { col: 'start', dir: 'desc' };
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQ) {
+      if (c === '"' && line[i+1] === '"') { cur += '"'; i++; }
+      else if (c === '"') inQ = false;
+      else cur += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { result.push(cur); cur = ''; }
+      else cur += c;
+    }
+  }
+  result.push(cur);
+  return result;
+}
+
+function parseMoney(s) {
+  if (!s) return 0;
+  const c = s.replace(/[$,\s]/g, '').replace(/[()]/g, '');
+  if (c === '-' || c === '') return 0;
+  const n = parseFloat(c);
+  return isNaN(n) ? 0 : n;
+}
+
+function formatMoney(n) {
+  if (n === 0) return '\u2014';
+  return '$' + n.toLocaleString('en-US');
+}
+
+function parseDate(s) {
+  if (!s) return null;
+  const d = new Date(s.trim());
+  return isNaN(d) ? null : d;
+}
+
+function formatDate(d) {
+  if (!d) return '\u2014';
+  return (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function parseData(csv) {
+  const lines = csv.split('\n').map(l => l.replace(/\r/,''));
+  rows = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const cols = parseCSVLine(lines[i]);
+    const rawPlayer = (cols[0] || '').trim();
+    if (!rawPlayer || rawPlayer.startsWith('*')) continue;
+
+    const isHardship = rawPlayer.endsWith('*');
+    const player = isHardship ? rawPlayer.slice(0, -1) : rawPlayer;
+    const team = (cols[1] || '').trim();
+    if (!team) continue;
+
+    const startDate = parseDate(cols[2]);
+    const endDate = parseDate(cols[3]);
+    const daysLeft = parseInt((cols[4] || '').trim(), 10);
+    const yos = parseInt((cols[5] || '').trim(), 10);
+    const capHit = parseMoney(cols[6]);
+
+    rows.push({
+      player, team, startDate, endDate,
+      daysLeft: isNaN(daysLeft) ? 0 : daysLeft,
+      yos: isNaN(yos) ? 0 : yos,
+      capHit, isHardship
+    });
+  }
+
+  applySorting();
+}
+
+function applySorting() {
+  const col = currentSort.col;
+  const dir = currentSort.dir;
+
+  rows.sort((a, b) => {
+    let va, vb;
+    switch(col) {
+      case 'player': va = a.player.toLowerCase(); vb = b.player.toLowerCase(); return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+      case 'team': va = a.team.toLowerCase(); vb = b.team.toLowerCase(); return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+      case 'start': va = a.startDate ? a.startDate.getTime() : 0; vb = b.startDate ? b.startDate.getTime() : 0; return dir === 'desc' ? vb - va : va - vb;
+      case 'end': va = a.endDate ? a.endDate.getTime() : 0; vb = b.endDate ? b.endDate.getTime() : 0; return dir === 'desc' ? vb - va : va - vb;
+      case 'days': return dir === 'desc' ? b.daysLeft - a.daysLeft : a.daysLeft - b.daysLeft;
+      case 'yos': return dir === 'desc' ? b.yos - a.yos : a.yos - b.yos;
+      case 'cap': return dir === 'desc' ? b.capHit - a.capHit : a.capHit - b.capHit;
+      default: return 0;
+    }
+  });
+}
+
+function sortBy(col) {
+  if (currentSort.col === col) {
+    if (col === 'player' || col === 'team') {
+      currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort.dir = currentSort.dir === 'desc' ? 'asc' : 'desc';
+    }
+  } else {
+    currentSort.col = col;
+    currentSort.dir = (col === 'player' || col === 'team') ? 'asc' : 'desc';
+  }
+  applySorting();
+  render();
+}
+
+function render() {
+  if (rows.length === 0) {
+    document.getElementById('app').innerHTML = '<div style="text-align:center;padding:80px;color:var(--accent-red)">No data found.</div>';
+    return;
+  }
+
+  const cols = [
+    { key: 'player', label: 'Player', align: '' },
+    { key: 'team', label: 'Team', align: '' },
+    { key: 'start', label: 'Start Date', align: '' },
+    { key: 'end', label: 'End Date', align: '' },
+    { key: 'days', label: 'Days Left', align: 'align-center' },
+    { key: 'yos', label: 'YOS', align: 'align-center' },
+    { key: 'cap', label: 'Cap Hit', align: 'align-right' },
+  ];
+
+  let html = '<div class="table-wrapper"><table><thead><tr>';
+
+  cols.forEach(c => {
+    const active = currentSort.col === c.key ? ' sort-active' : '';
+    const isText = c.key === 'player' || c.key === 'team';
+    const arrow = currentSort.col === c.key
+      ? (isText ? (currentSort.dir === 'asc' ? '\u25B2' : '\u25BC') : (currentSort.dir === 'desc' ? '\u25BC' : '\u25B2'))
+      : (isText ? '\u25B2' : '\u25BC');
+    html += '<th class="' + c.align + active + '" onclick="sortBy(\'' + c.key + '\')">' + c.label + ' <span class="sort-arrow">' + arrow + '</span></th>';
+  });
+
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(r => {
+    html += '<tr>';
+
+    // Player
+    html += '<td class="player-cell">' + escHtml(r.player);
+    if (r.isHardship) html += '<span class="hardship-tag">*</span>';
+    html += '</td>';
+
+    // Team
+    html += '<td class="team-cell">' + escHtml(r.team) + '</td>';
+
+    // Start Date
+    html += '<td class="date-cell">' + formatDate(r.startDate) + '</td>';
+
+    // End Date
+    html += '<td class="date-cell">' + formatDate(r.endDate) + '</td>';
+
+    // Days Left
+    const daysClass = r.daysLeft > 0 ? 'days-active' : 'days-expired';
+    html += '<td class="days-cell ' + daysClass + '">' + r.daysLeft + '</td>';
+
+    // YOS
+    html += '<td class="yos-cell">' + r.yos + '</td>';
+
+    // Cap Hit
+    html += '<td class="cap-cell"><span class="' + (r.capHit >= 100000 ? 'amt-low' : 'amt-zero') + '">' + formatMoney(r.capHit) + '</span></td>';
+
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  document.getElementById('app').innerHTML = html;
+  document.getElementById('tenDayCount').textContent = rows.length;
+}
+
+function loadFallback() {
+  try {
+    const csv = atob(FALLBACK_B64);
+    parseData(csv);
+    render();
+  } catch(e) {
+    document.getElementById('app').innerHTML = '<div style="text-align:center;padding:80px;color:var(--accent-red)">Failed to load data.</div>';
+  }
+}
+
+async function init() {
+  try {
+    const resp = await fetch(CSV_URL);
+    if (!resp.ok) throw new Error();
+    const text = await resp.text();
+    parseData(text);
+    render();
+  } catch(e) {
+    loadFallback();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
