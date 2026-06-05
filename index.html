@@ -66,12 +66,6 @@
       <div class="tm-title-sub">// Active 10-day signings &middot; * denotes hardship</div>
     </div>
   </div>
-  <div class="tm-meta">
-    <div class="tm-meta-item">
-      <div class="tm-meta-label">Active Contracts</div>
-      <div class="tm-meta-value" id="kpiCount">0</div>
-    </div>
-  </div>
 </div>
 
 <div id="app">
@@ -83,6 +77,14 @@
   <span>Updated Daily</span>
 </div>
 
+<script>
+(function(){
+  var _gbi = document.getElementById.bind(document);
+  var _removed = {kpiTeams:1,kpiTotal:1,kpiPayroll:1,kpiPlayers:1,kpiDiff:1,kpiNet:1,kpiPayers:1,kpiTax:1,kpiCount:1,totalPlayers:1,avgSalary:1,totalPayroll:1,totalUnderContract:1,totalProjected:1,totalDifference:1,tenDayCount:1};
+  var _stub = function(){ var s={textContent:'',innerHTML:'',value:'',style:{}}; return s; };
+  document.getElementById = function(id){ var el=_gbi(id); if(el) return el; if(_removed[id]) return _stub(); return null; };
+})();
+</script>
 <script>
 const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vRTwTOS_rNBYI8d8zDUivGFWXsXcxlOZgrqn5o-WCvFC5aNAR3vLsSqllE7aO0BRw/pub?gid=2125971386&single=true&output=csv';
 const FALLBACK_B64='UGxheWVyLFRlYW0sU3RhcnQgRGF0ZSxFbmQgRGF0ZSxEYXlzIExlZnQsWWVhcnMgb2YgU2VydmljZSxDYXAgSGl0';
